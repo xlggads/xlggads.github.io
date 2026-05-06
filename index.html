@@ -9,6 +9,187 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+/* 音乐播放器基础样式 */
+.music-player {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 300px;
+    background: linear-gradient(135deg, rgba(67, 97, 238, 0.95) 0%, rgba(58, 12, 163, 0.95) 100%);
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.music-player.minimized {
+    width: 60px;
+    height: 60px;
+    overflow: hidden;
+}
+
+.music-player.minimized .player-header,
+.music-player.minimized .player-controls {
+    display: none;
+}
+
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 15px 15px 0 0;
+}
+
+.song-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.album-cover {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.song-details h4 {
+    margin: 0 0 3px 0;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.song-details p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+}
+
+.close-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+.player-controls {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.control-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.control-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.control-btn.play-pause {
+    background: linear-gradient(135deg, #f72585, #ff6b9d);
+}
+
+.control-btn.play-pause:hover {
+    background: linear-gradient(135deg, #ff6b9d, #f72585);
+}
+
+.player-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.volume-slider {
+    width: 60px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+}
+
+.volume-level {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    background: white;
+    border-radius: 2px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: color 0.3s ease;
+}
+
+.action-btn:hover {
+    color: white;
+}
+
+/* 网易云音乐iframe样式 */
+.netease-iframe {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .music-player {
+        width: calc(100% - 40px);
+        bottom: 10px;
+        left: 20px;
+    }
+}
         * {
             margin: 0;
             padding: 0;
@@ -55,15 +236,29 @@
         
         header {
     padding: 20px 0;
-    position: fixed; /* 固定定位 */
+    position: fixed;
     top: 0;
     width: 100%;
     z-index: 1000;
     backdrop-filter: blur(10px);
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.5);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.3s ease;
+    
+    /* 添加底部渐变遮罩 */
+    mask-image: linear-gradient(
+        to bottom,
+        black 0%,
+        black 80%,
+        transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        black 0%,
+        black 80%,
+        transparent 100%
+    );
 }
-
 /* 当滚动时显示导航栏 */
 header.visible {
     transform: translateY(0);
@@ -927,7 +1122,258 @@ header.visible {
             </p>
         </div>
     </footer>
+<!-- 在</footer>标签后添加这个代码 -->
+<style>
+/* 白色可拖动音乐播放器 */
+.music-player-simple {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 300px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+    cursor: move;
+    transition: box-shadow 0.3s ease;
+}
 
+.music-player-simple:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    cursor: move;
+    user-select: none;
+}
+
+.song-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.song-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #4361ee, #3a0ca3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    box-shadow: 0 3px 8px rgba(67, 97, 238, 0.3);
+}
+
+.song-details h4 {
+    margin: 0 0 3px 0;
+    color: #333;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.song-details p {
+    margin: 0;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.player-toggle {
+    background: #f0f2f5;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    color: #4361ee;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.player-toggle:hover {
+    background: #e6e9ef;
+    transform: scale(1.1);
+}
+
+.netease-player {
+    padding: 0;
+    background: white;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .music-player-simple {
+        width: calc(100% - 40px);
+        left: 20px;
+        bottom: 10px;
+    }
+}
+</style>
+
+<!-- 音乐播放器 - 白色可拖动版本 -->
+<div class="music-player-simple" id="musicPlayer">
+    <div class="player-header" id="playerHeader">
+        <div class="song-info">
+            <div class="song-icon">
+                <i class="fas fa-music"></i>
+            </div>
+            <div class="song-details">
+                <h4>今天的我们</h4>
+                <p>周深</p>
+            </div>
+        </div>
+        <button class="player-toggle" id="togglePlayer" title="显示/隐藏播放器">
+            <i class="fas fa-chevron-down" id="toggleIcon"></i>
+        </button>
+    </div>
+    
+    <!-- 网易云音乐iframe直接显示 -->
+    <div class="netease-player" id="neteaseContainer">
+        <iframe 
+            id="neteaseIframe"
+            frameborder="no" 
+            border="0" 
+            marginwidth="0" 
+            marginheight="0" 
+            width="100%" 
+            height="86" 
+            src="https://music.163.com/outchain/player?type=2&id=3376153909&auto=1&height=66">
+        </iframe>
+    </div>
+</div>
+
+<script>
+// 音乐播放器控制
+document.addEventListener('DOMContentLoaded', function() {
+    const musicPlayer = document.getElementById('musicPlayer');
+    const playerHeader = document.getElementById('playerHeader');
+    const toggleBtn = document.getElementById('togglePlayer');
+    const toggleIcon = document.getElementById('toggleIcon');
+    const neteaseContainer = document.getElementById('neteaseContainer');
+    
+    // 拖动功能
+    let isDragging = false;
+    let currentX;
+    let currentY;
+    let initialX;
+    let initialY;
+    let xOffset = 0;
+    let yOffset = 0;
+    
+    // 开始拖动
+    playerHeader.addEventListener('mousedown', dragStart);
+    playerHeader.addEventListener('touchstart', dragStart);
+    
+    // 鼠标/触摸移动
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('touchmove', drag);
+    
+    // 停止拖动
+    document.addEventListener('mouseup', dragEnd);
+    document.addEventListener('touchend', dragEnd);
+    
+    function dragStart(e) {
+        if (e.type === "touchstart") {
+            initialX = e.touches[0].clientX - xOffset;
+            initialY = e.touches[0].clientY - yOffset;
+        } else {
+            initialX = e.clientX - xOffset;
+            initialY = e.clientY - yOffset;
+        }
+        
+        if (e.target === playerHeader || e.target.closest('.player-header')) {
+            isDragging = true;
+            musicPlayer.style.cursor = 'grabbing';
+        }
+    }
+    
+    function drag(e) {
+        if (isDragging) {
+            e.preventDefault();
+            
+            if (e.type === "touchmove") {
+                currentX = e.touches[0].clientX - initialX;
+                currentY = e.touches[0].clientY - initialY;
+            } else {
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+            }
+            
+            xOffset = currentX;
+            yOffset = currentY;
+            
+            setTranslate(currentX, currentY, musicPlayer);
+        }
+    }
+    
+    function dragEnd() {
+        initialX = currentX;
+        initialY = currentY;
+        isDragging = false;
+        musicPlayer.style.cursor = 'move';
+    }
+    
+    function setTranslate(xPos, yPos, el) {
+        el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+    }
+    
+    // 显示/隐藏播放器
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function(e) {
+            e.stopPropagation(); // 防止触发拖动
+            
+            if (neteaseContainer.style.display === 'none') {
+                neteaseContainer.style.display = 'block';
+                toggleIcon.className = 'fas fa-chevron-down';
+            } else {
+                neteaseContainer.style.display = 'none';
+                toggleIcon.className = 'fas fa-chevron-up';
+            }
+        });
+    }
+    
+    // 阻止点击播放器时触发拖动
+    musicPlayer.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+    
+    // 自动播放处理
+    setTimeout(function() {
+        const iframe = document.getElementById('neteaseIframe');
+        if (iframe) {
+            iframe.onload = function() {
+                console.log('音乐播放器加载完成');
+            };
+        }
+    }, 1000);
+    
+    // 窗口大小变化时限制播放器位置
+    window.addEventListener('resize', function() {
+        const rect = musicPlayer.getBoundingClientRect();
+        
+        // 确保播放器不会超出屏幕
+        if (rect.right > window.innerWidth) {
+            musicPlayer.style.left = (window.innerWidth - rect.width - 20) + 'px';
+        }
+        
+        if (rect.bottom > window.innerHeight) {
+            musicPlayer.style.top = (window.innerHeight - rect.height - 20) + 'px';
+        }
+    });
+});
+</script>
+</style>
     <!-- 简介弹窗 -->
     <div id="introModal" class="intro-modal">
         <div class="intro-content">
@@ -1018,33 +1464,6 @@ header.visible {
                     logoText.style.marginLeft = '0';
                 }
             };
-        }
-        
-        // 简介弹窗功能
-        const introModal = document.getElementById('introModal');
-        const showIntroBtn = document.getElementById('showIntro');
-        const closeIntroBtn = document.getElementById('closeIntro');
-        
-        if (showIntroBtn && introModal) {
-            showIntroBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                introModal.style.display = 'flex';
-            });
-        }
-        
-        if (closeIntroBtn && introModal) {
-            closeIntroBtn.addEventListener('click', function() {
-                introModal.style.display = 'none';
-            });
-        }
-        
-        // 点击弹窗外部关闭
-        if (introModal) {
-            introModal.addEventListener('click', function(e) {
-                if (e.target === introModal) {
-                    introModal.style.display = 'none';
-                }
-            });
         }
         
         // 点击鼠标特效
